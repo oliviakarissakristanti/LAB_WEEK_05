@@ -2,8 +2,10 @@ package com.example.lab_week_05
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.bumptech.glide.Glide
 import com.example.lab_week_05.api.CatApiService
 import com.example.lab_week_05.model.ImageData
 import com.squareup.moshi.Moshi
@@ -15,7 +17,7 @@ class MainActivity : AppCompatActivity() {
 
     private val moshi by lazy {
         Moshi.Builder()
-            .add(KotlinJsonAdapterFactory()) // penting supaya Moshi paham nullable default
+            .add(KotlinJsonAdapterFactory())
             .build()
     }
 
@@ -31,12 +33,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var apiResponseView: TextView
+    private lateinit var imageResultView: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         apiResponseView = findViewById(R.id.api_response)
+        imageResultView = findViewById(R.id.image_result)
+
         getCatImageResponse()
     }
 
@@ -53,14 +58,19 @@ class MainActivity : AppCompatActivity() {
                 response: Response<List<ImageData>>
             ) {
                 if (response.isSuccessful) {
-                    val imageList = response.body()
-                    Log.d(MAIN_ACTIVITY, "Full response: $imageList") // Debug log
-
-                    val first = imageList?.firstOrNull()
-                    val url = first?.imageUrl ?: "No URL"
+                    val first = response.body()?.firstOrNull()
+                    val url = first?.imageUrl
                     val breed = first?.breeds?.firstOrNull()?.name ?: "Unknown"
 
-                    apiResponseView.text = "Breed: $breed\nURL: $url"
+                    apiResponseView.text = "Breed: $breed\nURL: ${url ?: "No URL"}"
+
+                    // Load image hanya kalau URL ada
+                    if (!url.isNullOrBlank()) {
+                        Glide.with(this@MainActivity)
+                            .load(url)
+                            .centerCrop()
+                            .into(imageResultView)
+                    }
                 } else {
                     apiResponseView.text = "Error: ${response.errorBody()?.string().orEmpty()}"
                 }
@@ -68,5 +78,5 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    companion object { const val MAIN_ACTIVITY = "MAIN_ACTIVITY" }
+    companion object { private const val MAIN_ACTIVITY = "MAIN_ACTIVITY" }
 }
