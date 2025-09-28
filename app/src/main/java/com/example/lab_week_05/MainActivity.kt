@@ -59,12 +59,13 @@ class MainActivity : AppCompatActivity() {
             ) {
                 if (response.isSuccessful) {
                     val first = response.body()?.firstOrNull()
+
                     val url = first?.imageUrl
                     val breed = first?.breeds?.firstOrNull()?.name ?: "Unknown"
 
-                    apiResponseView.text = "Breed: $breed\nURL: ${url ?: "No URL"}"
+                    // ✅ Assignment: tampilkan breed (Unknown kalau kosong)
+                    apiResponseView.text = "Breed: $breed"
 
-                    // Load image hanya kalau URL ada
                     if (!url.isNullOrBlank()) {
                         Glide.with(this@MainActivity)
                             .load(url)
